@@ -38,14 +38,18 @@ services:
     volumes:
       - grafana_data:/var/lib/grafana
       - ./grafana/provisioning:/etc/grafana/provisioning
+      - ./grafana/dashboards:/var/lib/grafana/dashboards
     networks:
       - cache-network
     depends_on:
       - prometheus
 
-  app:
-    image: cache-app:1.0.0
-    ports: [ "8080:8080" ]
+  stampede:
+    build:
+      context: ./stampede
+    image: cache-stampede:1.0.0
+    profiles: ["stampede"]
+    ports: ["8080:8080"]
     mem_limit: 512m
     cpus: 1
     environment:

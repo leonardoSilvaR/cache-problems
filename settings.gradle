@@ -1,1 +1,3 @@
-rootProject.name = 'Caching'
+rootProject.name = 'cache-problems'
+
+include 'stampede'

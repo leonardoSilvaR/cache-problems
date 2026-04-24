@@ -1,23 +1,23 @@
 #!/bin/bash
 set -e
 
-APP_NAME="cache-app"
-APP_VERSION="1.0.0"
+MODULE=${1:?"Uso: $0 <module>  (ex: $0 stampede)"}
+IMAGE="cache-$MODULE:1.0.0"
 
-echo "Recarregando aplicação"
+echo "Recarregando módulo: $MODULE"
 
 # 1. Rebuilda o jar
 echo "Rebuild do Spring Boot"
-./gradlew clean build -x test
+./gradlew :$MODULE:bootJar -x test
 
 # 2. Rebuilda a imagem
 echo "Rebuild da imagem Docker"
-docker build -t $APP_NAME:$APP_VERSION .
+docker build -t $IMAGE ./$MODULE
 
-# 3. Reinicia apenas o container da app
-echo "Reiniciando container da app"
-docker compose up -d --force-recreate app
+# 3. Reinicia apenas o container do módulo
+echo "Reiniciando container"
+docker compose --profile $MODULE up -d --force-recreate $MODULE
 
-# 4. Acompanha os logs pra confirmar que subiu
+# 4. Acompanha os logs
 echo "Logs da aplicação"
-docker compose logs -f app --tail=30
+docker compose logs -f $MODULE --tail=30

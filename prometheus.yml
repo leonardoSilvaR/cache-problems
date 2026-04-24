@@ -1,6 +1,6 @@
 scrape_configs:
-  - job_name: 'caching-metrics'
+  - job_name: 'stampede'
     metrics_path: '/user/actuator/prometheus'
     scrape_interval: 5s
     static_configs:
-      - targets: ['app:8080']
+      - targets: ['stampede:8080']
