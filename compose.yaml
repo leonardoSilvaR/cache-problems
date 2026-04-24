@@ -1,0 +1,68 @@
+services:
+  cache:
+    image: redis:alpine
+    mem_limit: 128m
+    container_name: cache_layer
+    ports:
+      - "6379:6379"
+    networks:
+      - cache-network
+
+  database:
+    image: postgres:18-alpine
+    container_name: database
+    mem_limit: 256m
+    restart: always
+    environment:
+      POSTGRES_DB: user
+      POSTGRES_USER: database
+      POSTGRES_PASSWORD: database
+    ports:
+      - "5432:5432"
+    networks:
+      - cache-network
+
+  prometheus:
+    image: prom/prometheus
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    ports: ["9090:9090"]
+    networks:
+      - cache-network
+
+  grafana:
+    image: grafana/grafana
+    ports: [ "3000:3000" ]
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: admin
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+    networks:
+      - cache-network
+    depends_on:
+      - prometheus
+
+  app:
+    image: cache-app:1.0.0
+    ports: [ "8080:8080" ]
+    mem_limit: 512m
+    cpus: 1
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://database:5432/user
+      SPRING_DATASOURCE_USERNAME: database
+      SPRING_DATASOURCE_PASSWORD: database
+      SPRING_DATA_REDIS_HOST: cache
+      SPRING_DATA_REDIS_PORT: 6379
+    depends_on:
+      - cache
+      - database
+    networks:
+      - cache-network
+
+networks:
+  cache-network:
+    driver: bridge
+
+volumes:
+  grafana_data:
